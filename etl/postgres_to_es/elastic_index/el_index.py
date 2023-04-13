@@ -64,7 +64,7 @@ EL_INDEX = {
                 "type": "text",
                 "analyzer": "ru_en"
             },
-            "directors_names": {
+            "director": {
                 "type": "text",
                 "analyzer": "ru_en"
             },

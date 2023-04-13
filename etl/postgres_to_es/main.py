@@ -1,26 +1,33 @@
 import datetime
-
+import time
 from pgdb_exactor import PostgresExtractor
 from pgdb_transformer import ElasticTransformer
 from elastic_loader import ElasticLoader
 from state import State, JsonFileStorage
+from conf import settings
 
 
 class MainETL:
     def __init__(self):
-        self.state = State(JsonFileStorage('fixme'))
+        self.state = State(JsonFileStorage(settings.PATH_JSON))
         self.extractor = PostgresExtractor()
         self.transformer = ElasticTransformer()
         self.data_loader = ElasticLoader()
+        self.extractor.connect_to_pgdb()
+        self.data_loader.connect_elastic()
 
     def load_data(self):
-        last_modified = datetime.datetime.min
+        self.data_loader.load_index()
+        modified = self.state.get_state('modified')
+        last_modified = modified if modified is not None else datetime.datetime.min
         for rows in self.extractor.extract_filmworks(last_modified):
+            self.state.set_state("modified", datetime.datetime.now())
             transformed_data = self.transformer.transform_data(rows)
+            self.data_loader.load_data(transformed_data)
 
 
-{'id': 'ffc3df9f-a17e-4bae-b0b6-c9c4da290fdd', 'title': 'MegaMan Star Force', 'description': '', 'rating': 7.1,
- 'type': 'movie', 'created': datetime.datetime(2021, 6, 16, 20, 14, 9, 259084, tzinfo=datetime.timezone.utc),
- 'modified': datetime.datetime(2021, 6, 16, 20, 14, 9, 259100, tzinfo=datetime.timezone.utc), 'persons': [
-    {'person_id': 'b7aa38da-b725-4eac-8608-c4fe7636060b', 'person_name': 'Michael P. Greco', 'person_role': 'actor'}],
- 'genres': ['Animation']}
+if __name__ == '__main__':
+    etl = MainETL()
+    while True:
+        etl.load_data()
+        time.sleep(settings.TIME_SLEEP)
