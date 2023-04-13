@@ -14,7 +14,7 @@ class ElasticLoader:
     def connect_elastic(self):
         self.connection = Elasticsearch(hosts=f"http://{settings.ES_HOST}:{settings.ES_PORT}")
 
-    @backoff(exceptions=(RequestError,))
+    @backoff(exceptions=(RequestError, ConnectionError,))
     def load_index(self):
         if not self.connection.indices.exists(index="movies"):
             self.connection.indices.create(index="movies", body=el_index.EL_INDEX)
