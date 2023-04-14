@@ -13,11 +13,11 @@ class MainETL:
         self.extractor = PostgresExtractor()
         self.transformer = ElasticTransformer()
         self.data_loader = ElasticLoader()
-        self.extractor.connect_to_pgdb()
         self.data_loader.connect_elastic()
 
     def load_data(self):
         self.data_loader.load_index()
+        self.extractor.connect_to_pgdb()
         modified = self.state.get_state('modified')
         last_modified = modified if modified is not None else datetime.datetime.min
         for rows in self.extractor.extract_filmworks(last_modified):

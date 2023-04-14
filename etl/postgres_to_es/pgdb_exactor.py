@@ -15,9 +15,9 @@ class PostgresExtractor:
 
     @backoff(exceptions=(OperationalError,))
     def connect_to_pgdb(self):
-        dsl = {'dbname': config.DB_NAME, 'user': config.DB_USER,
-               'password': config.DB_PASSWORD, 'host': config.DB_HOST,
-               'port': config.DB_PORT}
+        dsl = {'dbname': config.POSTGRES_DB, 'user': config.POSTGRES_USER,
+               'password': config.POSTGRES_PASSWORD, 'host': config.POSTGRES_HOST,
+               'port': config.POSTGRES_PORT}
         self.connection = psycopg2.connect(**dsl, cursor_factory=DictCursor)
         self.cursor = self.connection.cursor()
 
@@ -31,3 +31,5 @@ class PostgresExtractor:
                 yield rows
             else:
                 break
+        self.cursor.close()
+        self.connection.close()
